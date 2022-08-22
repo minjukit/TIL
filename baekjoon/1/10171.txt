@@ -1,0 +1,31 @@
+# TIL
+
+## 0822
+
+백준 10171번 고양이
+
+문제
+
+```
+\    /\
+ )  ( ')
+(  /  )
+ \(__)|
+고양이를 출력하시오
+```
+
+<br>
+
+풀이
+```java
+public class  Main{
+    public static void main(String args[]){
+        // 역슬래쉬 출력시 두개
+        System.out.println("\\    /\\");
+        System.out.println(" )  ( ')");
+        System.out.println("(  /  )");
+        System.out.println(" \\(__)|");
+
+    }
+}
+```

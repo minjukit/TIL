@@ -1,0 +1,28 @@
+# TIL
+
+## 0822
+
+백준 25083번 새싹
+
+문제
+
+```
+         ,r'"7
+r`-_   ,'  ,/
+ \. ". L_r'
+   `~\/
+      |
+      |
+새싹을 출력하시오
+```
+
+<br>
+
+풀이
+```java
+public class Main{
+  public static void main(String[] args) {
+        System.out.println("         ,r'\"7\nr`-_   ,'  ,/\n \\. \". L_r'\n   `~\\/\n      |\n      |");
+    }
+}
+```
