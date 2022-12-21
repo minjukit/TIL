@@ -36,4 +36,5 @@ fun main() {
     }
 
     println(products.maxByOrNull{it.price})
+
 }
