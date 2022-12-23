@@ -139,9 +139,10 @@ join
 
 #### Job의 상태
 
-     생성     -> Active -> Completing -> Completed
-|             |       |
-v             v       v
+생성     -> Active -> Completing -> Completed
+
+|ㅡㅡㅡㅡㅡ|ㅡㅡㅡㅡㅡㅡ |
+vㅡㅡㅡㅡㅡvㅡㅡㅡㅡㅡ v
 cancelled <- Cancelling
 
 
@@ -208,24 +209,117 @@ CoroutineScope
 
 
 
+### 빌더의 특정 속성 지정
+
+- start()/await()가 호출될 떄 실제로 시작
+- launch나 async는 즉시 실행되지만 start 옵션에 따라 실행시점 지정가능
+
+```kotlin
+val someJob = launch(start = CoroutineStart.LAZY){
+}//start호출을 해야만 시작함
+...
+button.setOnClickListener{
+	someJob.start() // 버튼을 눌러야지만 코루틴 시작
+}
+```
 
 
 
+### runBlocking
+
+- 완료를 기다리기 위한 블로킹
+- 새로운 코루틴을 실행하고 완료되기 전까지는 현재 스레드를 블로킹함(delay()안해도 코루틴 기다림)
+- 코루틴 빌더와 마찬가지로 CoroutineScope의 인스턴스를 가짐
+- main에 달아주거나 그냥 런블로킹 블럭을 생성하거나 클래스 내의 멤버 메서드에 사용함
+- 특정 피스패처 옵션줄 수 있음 `runBlocking(Dispatchers.IO)`
+
+### withContext()
+
+1. 특정문맥과 함께 실행
+
+- 인자로 코루틴 문맥 지정
+- 해당 코드블럭은 다른 스레드에서 수행되고 결과를 반환함
+- 부모 스레드는 blocking하지 않음
+`result = withContext(Dispatchers.IO){fun()}`
+
+
+2. 완료보장
+
+`withContext{try{}finally{}}` finally 블럭의 실행보장
+
+
+### Scope Builder 스코프 빌더 
+
+coroutineScope 빌더
+
+- 자신만의 코루틴 스코프를 선언하고 생성
+- 자식이 완료되기전까지 종료되지 않음
+- runBlocking과 유사하지만 runBlocking은 단순함수로 현재 스레드를 blocking하고, coroutineScope는 단순 suspend 함수 형태로 non-blocking함
+- 자식코루틴이 실패하면 이 스코프도 실패하고 남은 모든 자식 취소됨 (외부에 의해 작업 취소 시 CancellationException 발생)
+
+supervisorScope 빌더
+
+- 코루틴 스코프를 생성함
+- SupervisorJob 함께 생성하여 기존 문맥의 Job을 override함
+  - launch로 생성한 작업의 실패는 CoroutineExceptionHandler를 통해 핸들링
+  - async로 생성한 작업의 실패는 Deferred.await의 결과에 따라 핸들링
+  - parent로 부모작업이 지정되면 자식작업이 되며, 이때 부모에 따라 취소여부를 결정함
+- 자식이 실패해도 스코프에 영향을 받지 않음
+
+
+### 병렬 분해
+
+Parallel decomposition 
+
+```kotlin
+suspend fun loadAndCombine(name: String, name2: String): Image = coroutineScope{
+   val deferred1 = async{loadImage(name)}
+   val deferred2 = async{loadImage(name2)}
+  combineImages(deferred1.await(), deferred2.await())
+// 합치는 거라 하나가 실패하면 의미가 없기때문에
+// 코루틴 문맥에서 실행하여 자식 코루틴으로 구성한다면 예외를 부모에게 전달하고 모든 자식 코루틴을 취소할 수 있음
+}
 
 
 
+### 스코프의 취소와 예외처리
+
+- cancel(), cancelChildren()
+
+```kotlin
+val scope = CoroutineScope
+val routine1 = scope.launch{}
+val routine2 = scope2.async{}
+scope.cancel() // 스코프 내 r1,r2 모두 취소
+// 또는
+scope.cancelChildren() // 하위 자식들 모두 취소
+```
+
+- 예외처리
+
+```kotlin
+try{
+}catch(e:CancellationException){
+}
+```
+
+### 코루틴 실행시간 지정
+
+- 실행시간 제한
+`withTimeout(시간값){}` 특정시간값 동안만 수행하고 블럭을 끝냄(시간되면 TimeoutCancellationException 예외 발생)
+`withTimeoutOrNull(시간값){}` 동작은 withTimeout과 동일한데 시간되도 예외발생하지 않고 null을 반환함
 
 
-
-
-
-
-
-
-
-
-
-
+```kotlin
+val result = withTimeoutOrNull(1300L){
+        repeat(1000){
+            println("I'm sleeping $it")
+            delay(500L)
+        }
+        "Done" //코루틴 블럭이 완료되면 이 값이 result에 반환됨
+    }
+    println("Result is $result") // null
+```
 
 
 
