@@ -11,9 +11,11 @@ import javafx.scene.layout.VBox
 import tornadofx.*
 
 class Calculator : View(){
-    //override val root: VBox by fxml()
+    // resources 하위 폴더가 app view 폴더 depth와 같아야함
+    override val root: VBox by fxml()
 
-    override val root: Parent = FXMLLoader.load(javaClass.getResource("/Calculator.fxml"))
+//  Vbox로 받아야 Label write가능
+//  override val root: Parent = FXMLLoader.load(javaClass.getResource("/Calculator/Calculator.fxml"))
 
     @FXML
     lateinit var display: Label
@@ -36,6 +38,7 @@ class Calculator : View(){
 
     var state: Operator = add(0)
 
+    @FXML
     private fun onAction(fn: Operator) {
         state = fn
         display.text = ""
@@ -47,6 +50,7 @@ class Calculator : View(){
             else -> display.text.toLong()
         }
 
+    @FXML
     private fun operator(x: String) {
         if (Regex("[0-9]").matches(x)) {
             display.text += x
@@ -55,7 +59,7 @@ class Calculator : View(){
                 "+" -> onAction(add(displayValue))
                 "-" -> onAction(sub(displayValue))
                 "/" -> onAction(div(displayValue))
-                "%" -> { onAction(add(displayValue /100)); operator("=") }
+                "%" -> { onAction(add(displayValue/100)); operator("=") } //백분율
                 "X" -> onAction(mul(displayValue))
                 "C" -> onAction(add(0))
                 "+/-" -> { onAction(add(-1* displayValue)); operator("=") }
